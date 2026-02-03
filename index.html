@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shortcut Tile</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+
+    .tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.2s ease,
+                  background-color 0.2s ease;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+    }
+
+    .tile:hover {
+      transform: scale(var(--hover-scale, 1.08));
+    }
+
+    .tile:active {
+      transform: scale(var(--click-scale, 0.95));
+    }
+
+    .tile.glow-enabled {
+      box-shadow: 0 0 var(--glow-intensity, 10px) var(--glow-color, rgba(139, 92, 246, 0.5));
+    }
+
+    .tile.glow-enabled:hover {
+      box-shadow: 0 0 calc(var(--glow-intensity, 10px) * 1.5) var(--glow-color, rgba(139, 92, 246, 0.7));
+    }
+
+    .icon-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon {
+      width: var(--icon-size, 48px);
+      height: var(--icon-size, 48px);
+      object-fit: contain;
+    }
+
+    .icon-emoji {
+      font-size: var(--icon-size, 48px);
+      line-height: 1;
+      text-align: center;
+    }
+
+    .label {
+      font-weight: 500;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .tile.error {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .tile.clicked {
+      animation: pulse 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="tile" id="tile" tabindex="0" role="button">
+    <div class="icon-container">
+      <img class="icon" id="icon-img" src="" alt="" style="display: none;">
+      <span class="icon-emoji" id="icon-emoji" style="display: none;"></span>
+    </div>
+    <div class="label" id="label"></div>
+  </div>
+
+  <script>
+    class ShortcutTile {
+      constructor() {
+        this.tile = document.getElementById('tile');
+        this.iconImg = document.getElementById('icon-img');
+        this.iconEmoji = document.getElementById('icon-emoji');
+        this.labelEl = document.getElementById('label');
+        this.isFirstRender = true;
+
+        const config = window.MyWallpaper?.config || {};
+
+        this.settings = {
+          actionType: config.actionType ?? 'url',
+          targetPath: config.targetPath ?? 'https://github.com',
+          iconSource: config.iconSource ?? 'emoji',
+          iconEmoji: config.iconEmoji ?? '🚀',
+          iconUrl: config.iconUrl ?? '',
+          iconFile: config.iconFile ?? null,
+          iconSize: config.iconSize ?? 48,
+          showLabel: config.showLabel ?? true,
+          label: config.label ?? 'GitHub',
+          labelSize: config.labelSize ?? 14,
+          labelColor: config.labelColor ?? '#ffffff',
+          tileColor: config.tileColor ?? '#ffffff',
+          tileOpacity: config.tileOpacity ?? 10,
+          blurAmount: config.blurAmount ?? 12,
+          borderRadius: config.borderRadius ?? 16,
+          borderWidth: config.borderWidth ?? 1,
+          borderColor: config.borderColor ?? '#ffffff',
+          borderOpacity: config.borderOpacity ?? 20,
+          enableGlow: config.enableGlow ?? true,
+          glowColor: config.glowColor ?? '#8b5cf6',
+          glowIntensity: config.glowIntensity ?? 10,
+          hoverScale: config.hoverScale ?? 1.08,
+          clickScale: config.clickScale ?? 0.95
+        };
+
+        this.init();
+      }
+
+      init() {
+        this.applySettings();
+        this.setupEventListeners();
+
+        if (this.isFirstRender && window.MyWallpaper) {
+          this.isFirstRender = false;
+          window.MyWallpaper.renderComplete();
+        }
+      }
+
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      applySettings() {
+        const s = this.settings;
+
+        // Icon size
+        this.tile.style.setProperty('--icon-size', `${s.iconSize}px`);
+
+        // Apply icon based on source
+        this.iconImg.style.display = 'none';
+        this.iconEmoji.style.display = 'none';
+
+        switch (s.iconSource) {
+          case 'emoji':
+            this.iconEmoji.textContent = s.iconEmoji || '🚀';
+            this.iconEmoji.style.display = 'block';
+            break;
+          case 'url':
+            if (s.iconUrl) {
+              this.iconImg.src = s.iconUrl;
+              this.iconImg.style.display = 'block';
+            }
+            break;
+          case 'file':
+            if (s.iconFile && window.MyWallpaper?.files?.isFileReference(s.iconFile)) {
+              window.MyWallpaper.files.request('iconFile').then(result => {
+                if (result.granted && result.blobUrl) {
+                  this.iconImg.src = result.blobUrl;
+                  this.iconImg.style.display = 'block';
+                  this.iconEmoji.style.display = 'none';
+                }
+              });
+            }
+            break;
+        }
+
+        // Label
+        this.labelEl.style.display = s.showLabel ? 'block' : 'none';
+        this.labelEl.textContent = s.label || '';
+        this.labelEl.style.fontSize = `${s.labelSize}px`;
+        this.labelEl.style.color = s.labelColor;
+
+        // Tile background (glassmorphism)
+        this.tile.style.background = this.hexToRgba(s.tileColor, s.tileOpacity / 100);
+
+        // Blur
+        this.tile.style.backdropFilter = `blur(${s.blurAmount}px)`;
+        this.tile.style.webkitBackdropFilter = `blur(${s.blurAmount}px)`;
+
+        // Border
+        this.tile.style.border = `${s.borderWidth}px solid ${this.hexToRgba(s.borderColor, s.borderOpacity / 100)}`;
+        this.tile.style.borderRadius = `${s.borderRadius}px`;
+
+        // Glow effect
+        if (s.enableGlow) {
+          this.tile.classList.add('glow-enabled');
+          this.tile.style.setProperty('--glow-color', this.hexToRgba(s.glowColor, 0.5));
+          this.tile.style.setProperty('--glow-intensity', `${s.glowIntensity}px`);
+        } else {
+          this.tile.classList.remove('glow-enabled');
+        }
+
+        // Hover/click scale
+        this.tile.style.setProperty('--hover-scale', s.hoverScale);
+        this.tile.style.setProperty('--click-scale', s.clickScale);
+      }
+
+      async handleClick() {
+        const { actionType, targetPath } = this.settings;
+
+        if (!targetPath) {
+          console.warn('[ShortcutTile] No target path configured');
+          return;
+        }
+
+        // Visual feedback
+        this.tile.classList.add('clicked');
+        setTimeout(() => this.tile.classList.remove('clicked'), 300);
+
+        try {
+          if (window.MyWallpaper?.system?.openPath) {
+            const result = await window.MyWallpaper.system.openPath(targetPath, {
+              type: actionType || 'auto'
+            });
+            if (result.success) {
+              console.log('[ShortcutTile] Opened:', targetPath);
+            }
+          } else {
+            // Fallback for testing without SDK
+            console.log('[ShortcutTile] Would open:', targetPath, 'as', actionType);
+            if (actionType === 'url' || actionType === 'protocol') {
+              window.open(targetPath, '_blank');
+            }
+          }
+        } catch (err) {
+          console.error('[ShortcutTile] Error:', err.message);
+          this.tile.classList.add('error');
+          setTimeout(() => this.tile.classList.remove('error'), 2000);
+        }
+      }
+
+      setupEventListeners() {
+        this.tile.addEventListener('click', () => this.handleClick());
+
+        this.tile.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.handleClick();
+          }
+        });
+
+        // Hot reload support
+        if (window.MyWallpaper?.onSettingsChange) {
+          window.MyWallpaper.onSettingsChange((newSettings, changedKeys) => {
+            console.log('[ShortcutTile] Settings changed:', changedKeys);
+            Object.assign(this.settings, newSettings);
+            this.applySettings();
+          });
+        }
+
+        // Viewport resize
+        if (window.MyWallpaper?.onEvent) {
+          window.MyWallpaper.onEvent('viewport:resize', ({ width, height }) => {
+            console.log(`[ShortcutTile] Viewport: ${width}x${height}`);
+          });
+        }
+      }
+    }
+
+    // Initialize
+    if (document.readyState === 'complete') {
+      window.shortcutTile = new ShortcutTile();
+    } else {
+      window.addEventListener('load', () => {
+        window.shortcutTile = new ShortcutTile();
+      });
+    }
+  </script>
+</body>
+</html>

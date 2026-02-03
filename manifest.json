@@ -1,0 +1,214 @@
+{
+  "name": "Shortcut Tile",
+  "version": "1.0.0",
+  "sdkVersion": "2.13.0",
+  "description": "Customizable glassmorphism tile shortcut to open URLs, files, folders, or applications with beautiful hover effects.",
+  "author": "MyWallpaper Community",
+  "type": "widget",
+  "categories": ["utilities", "productivity"],
+  "license": "MIT",
+  "repository": "https://github.com/rayandu924/mywallpaper-shortcut-tile",
+
+  "capabilities": {
+    "hotReload": true,
+    "systemEvents": ["viewport:resize"]
+  },
+
+  "permissions": {
+    "system": {
+      "openPath": true
+    }
+  },
+
+  "defaultLayout": {
+    "xPercent": 50,
+    "yPercent": 50,
+    "widthPercent": 12,
+    "heightPercent": 15,
+    "rotation": 0
+  },
+
+  "settings": {
+    "actionSection": {
+      "type": "section",
+      "label": "🎯 Action"
+    },
+    "actionType": {
+      "type": "select",
+      "label": "Action Type",
+      "default": "url",
+      "options": [
+        { "value": "url", "label": "Open URL" },
+        { "value": "file", "label": "Execute File" },
+        { "value": "folder", "label": "Open Folder" },
+        { "value": "protocol", "label": "App Protocol" }
+      ]
+    },
+    "targetPath": {
+      "type": "string",
+      "label": "Target",
+      "description": "URL, file path, folder path, or protocol (spotify://, discord://)",
+      "default": "https://github.com"
+    },
+
+    "iconSection": {
+      "type": "section",
+      "label": "🖼️ Icon"
+    },
+    "iconSource": {
+      "type": "select",
+      "label": "Icon Source",
+      "default": "emoji",
+      "options": [
+        { "value": "emoji", "label": "Emoji" },
+        { "value": "url", "label": "From URL" },
+        { "value": "file", "label": "Local File" }
+      ]
+    },
+    "iconEmoji": {
+      "type": "string",
+      "label": "Emoji",
+      "default": "🚀"
+    },
+    "iconUrl": {
+      "type": "string",
+      "label": "Icon URL",
+      "description": "URL to icon (PNG, JPG, GIF, SVG)",
+      "default": ""
+    },
+    "iconFile": {
+      "type": "image",
+      "label": "Icon File"
+    },
+    "iconSize": {
+      "type": "range",
+      "label": "Icon Size",
+      "min": 24,
+      "max": 128,
+      "step": 4,
+      "default": 48
+    },
+
+    "labelSection": {
+      "type": "section",
+      "label": "📝 Label"
+    },
+    "showLabel": {
+      "type": "boolean",
+      "label": "Show Label",
+      "default": true
+    },
+    "label": {
+      "type": "string",
+      "label": "Label Text",
+      "default": "GitHub"
+    },
+    "labelSize": {
+      "type": "range",
+      "label": "Font Size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "default": 14
+    },
+    "labelColor": {
+      "type": "color",
+      "label": "Label Color",
+      "default": "#ffffff"
+    },
+
+    "tileSection": {
+      "type": "section",
+      "label": "🎨 Tile Appearance"
+    },
+    "tileColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    "tileOpacity": {
+      "type": "range",
+      "label": "Background Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 10
+    },
+    "blurAmount": {
+      "type": "range",
+      "label": "Blur Amount",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 12
+    },
+    "borderRadius": {
+      "type": "range",
+      "label": "Border Radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 16
+    },
+    "borderWidth": {
+      "type": "range",
+      "label": "Border Width",
+      "min": 0,
+      "max": 4,
+      "step": 0.5,
+      "default": 1
+    },
+    "borderColor": {
+      "type": "color",
+      "label": "Border Color",
+      "default": "#ffffff"
+    },
+    "borderOpacity": {
+      "type": "range",
+      "label": "Border Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 20
+    },
+
+    "effectsSection": {
+      "type": "section",
+      "label": "✨ Effects"
+    },
+    "enableGlow": {
+      "type": "boolean",
+      "label": "Enable Glow",
+      "default": true
+    },
+    "glowColor": {
+      "type": "color",
+      "label": "Glow Color",
+      "default": "#8b5cf6"
+    },
+    "glowIntensity": {
+      "type": "range",
+      "label": "Glow Intensity",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 10
+    },
+    "hoverScale": {
+      "type": "range",
+      "label": "Hover Scale",
+      "min": 1,
+      "max": 1.3,
+      "step": 0.02,
+      "default": 1.08
+    },
+    "clickScale": {
+      "type": "range",
+      "label": "Click Scale",
+      "min": 0.8,
+      "max": 1,
+      "step": 0.02,
+      "default": 0.95
+    }
+  }
+}
